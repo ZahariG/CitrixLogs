@@ -161,6 +161,8 @@ function Get-DevicePostureRecords {
         [string]$endTime
     )
 
+    $headers = 
+
     $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
     # $session.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36"
 
@@ -189,19 +191,22 @@ function Get-DevicePostureRecords {
 
     try {
         $response = Invoke-RestMethod `
-            -Uri $devicePostureUrl `
-            -Method Post `
-            -WebSession $session `
             -Headers @{
-            "Accept"            = "application/json"
-            "Accept-Encoding"   = "gzip, deflate, br, zstd"
-            "Accept-Language"   = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
-            "DNT"               = "1"
-            "Origin"            = "https://device-posture-config.cloud.com"
-            "Authorization"     = "CWSAuth bearer=$bearerToken"
-            "Citrix-CustomerId" = $customerID
-            "Geolocation"       = "US"
-        } `
+                "Accept"            = "application/json"
+                "Accept-Encoding"   = "gzip, deflate, br, zstd"
+                "Accept-Language"   = "de,de-DE;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,de-AT;q=0.5,ro;q=0.4"
+                "Sec-Fetch-Dest"    = "empty"
+                "Sec-Fetch-Mode"    = "cors"
+                "Sec-Fetch-Site"    = "cross-site"
+                "Origin"            = "https://device-posture-config.cloud.com"
+                "authorization"     = "CWSAuth bearer=$bearerToken"
+                "citrix-customerid" = $customerID
+                "vary"              = "Citrix-CustomerId"
+                "Geolocation"       = "EU"
+            } `
+            -Method Post `
+            -Uri $devicePostureUrl `
+            -WebSession $session `
             -ContentType "application/json" `
             -Body $body
 
@@ -252,7 +257,7 @@ $systemLogUrl = "https://api-eu.cloud.com/systemlog/records"     # EU
 $devicePostureUrl = "https://dashboard.netscalergateway.net/graphql"
 
 ## START & ENDDATE + TIME ##
-$date = (Get-Date).AddDays(-1).ToString("yyyy-MM-dd")
+$date = (Get-Date).AddDays(-1 ).ToString("yyyy-MM-dd")
 $startTime = "00:00:00.000"
 $endTime = "23:59:59.999"
 
