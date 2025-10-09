@@ -257,7 +257,7 @@ $startTime = "00:00:00.000"
 $endTime = "23:59:59.999"
 
 ## FILE NAMING & PATHING ##
-$pathToLogs = "./CitrixLogs"
+$pathToLogs = "./Logs"
 if (-Not (Test-Path $pathToLogs)) {
     try {
         New-Item -Path $pathToLogs -ItemType "Directory" -Force | Out-Null
