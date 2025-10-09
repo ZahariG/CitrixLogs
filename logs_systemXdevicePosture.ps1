@@ -83,7 +83,7 @@ function Get-BearerToken {
         }
     }
     catch {
-        Write-Log "$( $_.Exception.Message )`nCould not get bearer token. Abort..."
+        Write-Log "$( $_.Exception.Message )`nCould not get bearer-token. Abort..."
         
         if ($_.Exception.Response) {
             $status = ($_.Exception.Response).StatusCode
@@ -102,7 +102,9 @@ function Get-SystemLogRecords {
         [Parameter(Mandatory = $true)]
         [string]$systemLogUrl,
         [Parameter(Mandatory = $true)]
-        [string]$date,
+        [string]$startDate,
+        [Parameter(Mandatory = $true)]
+        [string]$endDate,
         [Parameter(Mandatory = $true)]
         [string]$startTime,
         [Parameter(Mandatory = $true)]
@@ -117,7 +119,7 @@ function Get-SystemLogRecords {
         # "Citrix-TransactionId"  = ""  #(optional)
     }
 
-    $systemLogQueryUrl = "${systemLogUrl}?startDateTime=${date}T${startTime}Z&endDateTime=${date}T${endTime}Z&limit=200"
+    $systemLogQueryUrl = "${systemLogUrl}?startDateTime=${startDate}T${startTime}Z&endDateTime=${endDate}T${endTime}Z&limit=200"
 
     try {
         $response = Invoke-RestMethod `
@@ -154,7 +156,9 @@ function Get-DevicePostureRecords {
         [Parameter(Mandatory = $true)]
         [string]$devicePostureUrl,
         [Parameter(Mandatory = $true)]
-        [string]$date,
+        [string]$startDate,
+        [Parameter(Mandatory = $true)]
+        [string]$endDate,
         [Parameter(Mandatory = $true)]
         [string]$startTime,
         [Parameter(Mandatory = $true)]
@@ -174,7 +178,7 @@ function Get-DevicePostureRecords {
                     @{ source = "Device Posture Service" }
                     @{ tenant_id_contains = "%%" }
                 )
-                __time_between = "$date" + "T" + "$startTime" + "Z,$date" + "T" + "$endTime" + "Z"
+                __time_between = "$startDate" + "T" + "$startTime" + "Z,$endDate" + "T" + "$endTime" + "Z"
             }
             limit   = 10000
             orderBy = @("__time_DESC")
@@ -257,7 +261,8 @@ $systemLogUrl = "https://api-eu.cloud.com/systemlog/records"     # EU
 $devicePostureUrl = "https://dashboard.netscalergateway.net/graphql"
 
 ## START & ENDDATE + TIME ##
-$date = (Get-Date).AddDays(-1 ).ToString("yyyy-MM-dd")
+$startDate = (Get-Date).AddDays(-1 ).ToString("yyyy-MM-dd")
+$endDate = (Get-Date).AddDays(-1 ).ToString("yyyy-MM-dd")
 $startTime = "00:00:00.000"
 $endTime = "23:59:59.999"
 
@@ -272,7 +277,7 @@ if (-Not (Test-Path $pathToLogs)) {
         exit 1
     }
 }
-$timestampFile = (Get-Date).ToString("yyyy-MM-ddTHH-mm-ss")
+$timestampFile = (Get-Date).AddDays(-1).ToString("yyyy-MM-ddTHH-mm-ss")
 $sysLogjsonName = "SystemLog_${timestampFile}.json"
 $dpLogjsonName = "DevicePosture_${timestampFile}.json"
 $sysLogjsonPath = "${pathToLogs}/${sysLogjsonName}"
@@ -282,6 +287,6 @@ $dpLogjsonPath = "${pathToLogs}/${dpLogjsonName}"
 $bearerToken = Get-BearerToken $clientID $clientSecret $bearerTokenUrl
 
 ## CALL THE NEEDE FUNCTIONS TO GET THE NEEDED LOGS
-Get-SystemLogRecords $customerID $bearerToken $systemLogUrl $date $startTime $endTime | ConvertTo-Json -Depth 10 | Set-Content -Path $sysLogjsonPath
+Get-SystemLogRecords $customerID $bearerToken $systemLogUrl $startDate $endDate $startTime $endTime | ConvertTo-Json -Depth 10 | Set-Content -Path $sysLogjsonPath
 
-Get-DevicePostureRecords $customerID $bearerToken $devicePostureUrl $date $startTime $endTime | ConvertTo-Json -Depth 10 | Set-Content -Path $dpLogjsonPath
+Get-DevicePostureRecords $customer3ID $bearerToken $devicePostureUrl $startDate $endDate $startTime $endTime | ConvertTo-Json -Depth 10 | Set-Content -Path $dpLogjsonPath
