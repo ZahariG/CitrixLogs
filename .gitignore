@@ -1,1 +1,5 @@
 *.csv
+CitrixLogs
+Logs
+dp.ps1
+errors.log
